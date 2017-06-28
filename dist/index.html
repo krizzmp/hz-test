@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script src="/horizon/horizon.js"></script>
+    <script>
+      var horizon = Horizon();
+      horizon.onReady(function() {
+        document.querySelector('h1').innerHTML = 'hz_test works!'
+      });
+      horizon.connect();
+    </script>
+  </head>
+  <body>
+   <div class="attach"></div>
+  </body>
+<script src="./bundle.js"></script>
+</html>
