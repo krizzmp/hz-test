@@ -6,6 +6,7 @@ import Messages from './messages'
 
 const App = (props) =>
   <div>
+    {console.log(props.user)||''}
     <div className="center">
       <button onClick={props.sendMessage}>Send Message</button>
       <input onChange={props.handleChangeAuthor} />
@@ -15,7 +16,8 @@ const App = (props) =>
   </div>
 
 const mapDataToProps = {
-  chat: hz => hz('messages')
+  chat: hz => hz('messages'),
+  user: hz => hz.currentUser()
 }
 export default compose(
   withState('text', 'setText', ''),
