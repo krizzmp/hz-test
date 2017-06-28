@@ -3,14 +3,14 @@ import { subscribe } from 'horizon-react'
 import { compose, withState, withHandlers } from 'recompose'
 import Messages from './messages'
 
-const App = () =>
+const App = (props) =>
   <div>
     <div className="center">
-      <button onClick={this.props.sendMessage}>Send Message</button>
-      <input onChange={this.props.handleChangeAuthor} />
-      <input onChange={this.props.handleChangeText} />
+      <button onClick={props.sendMessage}>Send Message</button>
+      <input onChange={props.handleChangeAuthor} />
+      <input onChange={props.handleChangeText} />
     </div>
-    <Messages chat={this.props.chat} />
+    <Messages chat={props.chat} />
   </div>
 
 // simple subscription to the collection "todos"
@@ -26,6 +26,13 @@ export default compose(
   withHandlers({
     handleChangeAuthor: ({ setText }) => event => setText(event.target.value),
     handleChangeText: ({ setAuthor }) => event => setAuthor(event.target.value),
-    sendMessage: ({ horizon, text, author }) => () => horizon('messages').store({ text, author })
+    reset: ({ setText, setAuthor }) => () => {
+      setText('')
+      setAuthor('')
+    },
+    sendMessage: ({ horizon, reset, text, author }) => () => {
+      reset()
+      horizon('messages').store({ text, author })
+    }
   })
 )(App)
