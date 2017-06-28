@@ -1,16 +1,15 @@
-import React, { Component } from 'react'
+// @flow
+import React from 'react'
 import Message from './message'
-class Messages extends Component {
-
-  render() {
-    let msgsjsx = this.props.chat.map(function(message, i) {
-      return <Message msg={message} key={i} />
-    })
-    return (
-      <div className="container-fluid">
-        {msgsjsx}
-      </div>
-    )
-  }
+type msg = {
+  author: string,
+  text: string
 }
+type g = {
+  chat: msg[]
+}
+const Messages = ({ chat }: g) =>
+  <div className="container-fluid">
+    {chat.map((message, i) => <Message msg={message} key={i} />)}
+  </div>
 export default Messages

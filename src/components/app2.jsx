@@ -1,15 +1,13 @@
+// @flow
 import React from 'react'
-import {Connector} from 'horizon-react'
+import { Connector } from 'horizon-react'
 import App from './app'
-import {createStore} from 'redux'
+import { createStore } from 'redux'
 
-let store = createStore(s => s)
-export default class App2 extends React.Component {
-  render() {
-    return (
-      <Connector store={store}>
-        <App/>
-      </Connector>
-    )
-  }
-}
+const store = createStore(s => s)
+const App2 = () =>
+  <Connector store={store}>
+    <App />
+  </Connector>
+
+export default App2

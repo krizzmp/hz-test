@@ -1,3 +1,4 @@
+// @flow
 import React from 'react'
 import { subscribe } from 'horizon-react'
 import { compose, withState, withHandlers } from 'recompose'
@@ -13,7 +14,6 @@ const App = (props) =>
     <Messages chat={props.chat} />
   </div>
 
-// simple subscription to the collection "todos"
 const mapDataToProps = {
   chat: hz => hz('messages')
 }
