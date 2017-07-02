@@ -14,7 +14,6 @@ if (!horizon.hasAuthToken()) {
   });
 } else {
   // We have a token already, do authenticated Horizon stuff here
-  console.log(horizon)
   horizon.connect()
   const store = createStore(s => s)
   App2 = () =>
