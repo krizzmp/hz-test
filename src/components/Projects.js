@@ -2,8 +2,8 @@
 import React from 'react'
 import { subscribe } from 'horizon-react'
 import { compose, withHandlers, withState } from 'recompose'
-import Rx from 'rxjs'
-import R from 'ramda'
+
+import Project from './Tasks'
 
 let asHz = observable => ({
   watch() {
@@ -11,26 +11,45 @@ let asHz = observable => ({
   }
 })
 let id = x => x
-const Projects = compose(
+
+const ProjectItem = compose()(({ project, onClick, active }) =>
+  <div className={'project' + (active ? ' active' : '')} onClick={() => onClick(project.id)}>
+    {project.name}
+  </div>
+)
+const Projects = props =>
+  <div>
+    <div className="project-creator-bar">
+      <input type="text" value={props.projectName} onChange={props.updateProjectNameInput} />
+      <button onClick={props.createProject}>Create Project</button>
+    </div>
+    <div className="projects">
+      {props.projects.map(p =>
+        <ProjectItem project={p} active={props.selectedProjectId === p.id} onClick={props.choose} />
+      )}
+    </div>
+    {props.selectedProjectId ? <Project projectId={props.selectedProjectId} /> : <div>none</div>}
+  </div>
+
+export default compose(
   subscribe({
     mapDataToProps: {
       projects: hz =>
         asHz(
-          id(hz.currentUser().watch()) // $<user>
-            .flatMap(
-              us => hz('upc').findAll({ uid: us.id }).watch() // $<[upc]>
-            ) // $<[upc]>
+          id(hz.currentUser().watch())
+            .flatMap(us => hz('upc').findAll({ uid: us.id }).watch())
             .flatMap(upcArr => {
-              let map = upcArr.map(upc => hz('projects').find({ id: upc.pid }).watch()) // [$<project>]
-              return Rx.Observable.combineLatest(map, (...args) => R.flatten(args)) // $<[project]>
-            }) // $<[project]>
+              let map_ = upcArr.map(upc => ({ id: upc.pid }))
+              return hz('projects').findAll(...map_).watch()
+            })
         ),
       user: hz => hz.currentUser()
     }
   }),
   withState('projectName', 'setProjectName', ''),
+  withState('selectedProjectId', 'setSelectedProjectId', ''),
   withHandlers({
-    createProject: ({ horizon, user, projectName: name }) => () => {
+    createProject: ({ horizon, user, projectName: name, setProjectName }) => () => {
       user.map(({ id: uid }) =>
         horizon('projects').store({ name }).subscribe(({ id: pid }) =>
           horizon('upc').store({
@@ -39,18 +58,9 @@ const Projects = compose(
           })
         )
       )
+      setProjectName('')
     },
-    updateProjectNameInput: ({ setProjectName }) => e => setProjectName(e.target.value)
+    updateProjectNameInput: ({ setProjectName }) => e => setProjectName(e.target.value),
+    choose: ({ setSelectedProjectId }) => id => setSelectedProjectId(id)
   })
-)(props =>
-  <div>
-    <div className="center">
-      <input type="text" value={props.projectName} onChange={props.updateProjectNameInput} />
-      <button onClick={props.createProject}>Create Project</button>
-    </div>
-    <div className="projects">
-      {props.projects.map(u => <div>{u.name}</div>)}
-    </div>
-  </div>
-)
-export default Projects
+)(Projects)
