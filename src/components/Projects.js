@@ -1,22 +1,19 @@
 // @flow
 import React from 'react'
-import { subscribe } from 'horizon-react'
-import { compose, withHandlers, withState } from 'recompose'
+import { compose, getContext, withHandlers, withState, withStateHandlers } from 'recompose'
+import {mapPropsStream} from '../utils'
+import type { HOC } from 'recompose'
+import type { Horizon, User, Upc, ProjectT } from '../types'
 
 import Project from './Tasks'
 
-let asHz = observable => ({
-  watch() {
-    return observable
-  }
-})
-let id = x => x
+let or = (p, y, n) => (p ? y : n)
 
-const ProjectItem = compose()(({ project, onClick, active }) =>
+const ProjectItem = ({ project, onClick, active }) =>
   <div className={'project' + (active ? ' active' : '')} onClick={() => onClick(project.id)}>
     {project.name}
   </div>
-)
+
 const Projects = props =>
   <div>
     <div className="project-creator-bar">
@@ -25,42 +22,44 @@ const Projects = props =>
     </div>
     <div className="projects">
       {props.projects.map(p =>
-        <ProjectItem project={p} active={props.selectedProjectId === p.id} onClick={props.choose} />
+        <ProjectItem key={p.id} project={p} active={props.selectedProjectId === p.id} onClick={props.setSelectedProjectId} />
       )}
     </div>
-    {props.selectedProjectId ? <Project projectId={props.selectedProjectId} /> : <div>none</div>}
+    {or(props.selectedProjectId, <Project projectId={props.selectedProjectId} />, <div>none</div>)}
   </div>
 
-export default compose(
-  subscribe({
-    mapDataToProps: {
-      projects: hz =>
-        asHz(
-          id(hz.currentUser().watch())
-            .flatMap(us => hz('upc').findAll({ uid: us.id }).watch())
-            .flatMap(upcArr => {
-              let map_ = upcArr.map(upc => ({ id: upc.pid }))
-              return hz('projects').findAll(...map_).watch()
-            })
-        ),
-      user: hz => hz.currentUser()
-    }
-  }),
-  withState('projectName', 'setProjectName', ''),
-  withState('selectedProjectId', 'setSelectedProjectId', ''),
-  withHandlers({
-    createProject: ({ horizon, user, projectName: name, setProjectName }) => () => {
-      user.map(({ id: uid }) =>
-        horizon('projects').store({ name }).subscribe(({ id: pid }) =>
-          horizon('upc').store({
-            uid,
-            pid
-          })
+const enhance: HOC<*, {}> = compose(
+  getContext({ horizon: ((React.PropTypes.func: any): Horizon) }),
+  mapPropsStream(props$ =>
+    props$.flatMap(props =>
+      props.horizon.currentUser().watch().flatMap((user:User) =>
+        props.horizon('upc').findAll({uid:user.id}).watch().flatMap((upcs:Upc[]) =>
+          props.horizon('projects').findAll(...upcs.map(upc => ({ id: upc.pid }))).watch().map((projects:ProjectT[]) =>
+            ({ ...props, projects: projects, user: user })
+          )
         )
       )
+    )
+  ),
+  withStateHandlers(
+    {
+      projectName: '',
+      selectedProjectId: ''
+    },
+    {
+      setProjectName: state => (projectName: string) => ({ projectName }),
+      setSelectedProjectId: state => (selectedProjectId: string) => ({ selectedProjectId })
+    }
+  ),
+  withHandlers({
+    createProject: ({ horizon, user, projectName, setProjectName }) => () => {
+      horizon('projects')
+        .store({ name: projectName })
+        .subscribe((project: ProjectT) => horizon('upc').store({ uid: user.id, pid: project.id }))
       setProjectName('')
     },
-    updateProjectNameInput: ({ setProjectName }) => e => setProjectName(e.target.value),
-    choose: ({ setSelectedProjectId }) => id => setSelectedProjectId(id)
+    updateProjectNameInput: ({ setProjectName }) => (e: SyntheticInputEvent) => setProjectName(e.target.value)
   })
-)(Projects)
+)
+const exp = enhance(Projects)
+export default exp
