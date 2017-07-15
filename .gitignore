@@ -3,3 +3,6 @@ rethinkdb_data
 .hz/secrets.toml
 .idea/*
 node_modules/*
+flow-typed
+horizon-cert.pem
+horizon-key.pem
