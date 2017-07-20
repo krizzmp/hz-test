@@ -1,47 +1,72 @@
 // @flow
 import React from 'react'
-import { subscribe } from 'horizon-react'
-import { compose, getContext, withHandlers, withState, withStateHandlers } from 'recompose'
-import {mapPropsStream} from '../utils'
+import PropTypes from 'prop-types'
+import { compose, getContext, withHandlers, withStateHandlers } from 'recompose'
+import { mapPropsStream } from '../utils'
 import type { HOC } from 'recompose'
 import type { Horizon, Task } from '../types'
-const Task_ = props =>
-  <div className="task">
+import styled from 'styled-components'
+import windowDimensions from 'react-window-dimensions'
+import FabModal from './FabModal'
+import type {Observable} from 'rxjs'
+
+
+const TaskStyle = styled.div``
+const TaskCreatorBar = styled.div`
+  padding: 8px;
+  z-index: 16;
+`
+const Input = styled.input`
+  background: #eeeeee;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+`
+const Button = styled.button`
+  background: #eeeeee;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+`
+const TaskItem = props =>
+  <TaskStyle>
     {props.task.title}
-  </div>
+  </TaskStyle>
 const Tasks = props =>
   <div>
-    <div className="project-creator-bar">
-      <input type="text" value={props.taskTitle} onChange={props.updateTaskTitleInput} />
-      <button onClick={props.createTask}>Create Project</button>
-    </div>
     <h1>tasks</h1>
-    {props.tasks.map(task => <Task_ key={task.id} task={task} />)}
+    {props.tasks.map(task => <TaskItem key={task.id} task={task} />)}
+    <FabModal editing={props.editing} onClick={() => props.setEditing(!props.editing)}>
+      <TaskCreatorBar>
+        <Input type="text" value={props.taskTitle} onChange={props.updateTaskTitleInput} />
+        <Button onClick={props.createTask}>Create Project</Button>
+      </TaskCreatorBar>
+    </FabModal>
+    {/* <AddTask height={props.height} width={props.width} editing={props.editing} onClick={() => props.setEditing(!props.editing)} /> */}
   </div>
 
-const enhance: HOC<*, { projectId: string }> = compose(
-  getContext({ horizon: ((React.PropTypes.func: any): Horizon) }),
+const enhance: HOC<*, { projectId: string, width: number, height: number }> = compose(
+  getContext({ horizon: ((PropTypes.func: any): Horizon) }),
   mapPropsStream(props$ => {
     return props$.flatMap(props => {
-      let tasks$: rxjs$Observable<Task[]> = props.horizon('tasks').findAll({ projectId: props.projectId }).watch()
+      let tasks$: Observable<Task[]> = props.horizon('tasks').findAll({ projectId: props.projectId }).watch()
       return tasks$.map(arr => ({ ...props, tasks: arr }))
     })
   }),
   withStateHandlers(
-    { taskTitle: '' },
+    { taskTitle: '', editing: false },
     {
-      setTaskTitle: state => (taskTitle: string) => ({
-        taskTitle
-      })
+      setTaskTitle: () => (taskTitle: string) => ({ taskTitle }),
+      setEditing: () => (editing: boolean) => ({ editing })
     }
   ),
   withHandlers({
-    createTask: ({ horizon, setTaskTitle, projectId, taskTitle }) => () => {
+    createTask: ({ horizon, setTaskTitle, projectId, taskTitle, setEditing }) => () => {
       horizon('tasks').store({ projectId, title: taskTitle })
       setTaskTitle('')
+      setEditing(false)
     },
     updateTaskTitleInput: ({ setTaskTitle }) => (e: SyntheticInputEvent) => setTaskTitle(e.target.value)
   })
 )
-const exp = enhance(Tasks)
+let wd: HOC<{ projectId: string, width: number, height: number }, { projectId: string }> = windowDimensions()
+const exp = wd(enhance(Tasks))
 export default exp

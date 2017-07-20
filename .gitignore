@@ -6,3 +6,5 @@ node_modules/*
 flow-typed
 horizon-cert.pem
 horizon-key.pem
+.DS_Store
+dist/bundle.js

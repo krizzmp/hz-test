@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 
-import Projects from './Projects'
+import Projects from './Root'
 
 const App = () =>
   <div>

@@ -1,14 +1,15 @@
 // @flow
+import type {Observable} from 'rxjs'
 export type Collection = {
   findAll: (...g: Object[]) => Collection,
-  watch: () => rxjs$Observable<*>,
-  store: (o: Object) => rxjs$Observable<*>
+  watch: () => Observable<*>,
+  store: (o: Object) => Observable<*>
 }
 export type Horizon = {
   (collection: string): Collection,
   currentUser: () => Collection,
   hasAuthToken: () => boolean,
-  authEndpoint: (provider:string) => rxjs$Observable<string>,
+  authEndpoint: (provider:string) => Observable<string>,
   connect: () => Horizon
 }
 

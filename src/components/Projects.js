@@ -1,9 +1,12 @@
 // @flow
 import React from 'react'
-import { compose, getContext, withHandlers, withState, withStateHandlers } from 'recompose'
+import PropTypes from 'prop-types'
+import { compose, getContext, withHandlers, withStateHandlers } from 'recompose'
 import {mapPropsStream} from '../utils'
 import type { HOC } from 'recompose'
-import type { Horizon, User, Upc, ProjectT } from '../types'
+import type { Horizon } from '../types'
+import {getProjects} from '../store/selectors'
+import {createProject} from '../store/actions'
 
 import Project from './Tasks'
 
@@ -29,33 +32,21 @@ const Projects = props =>
   </div>
 
 const enhance: HOC<*, {}> = compose(
-  getContext({ horizon: ((React.PropTypes.func: any): Horizon) }),
-  mapPropsStream(props$ =>
-    props$.flatMap(props =>
-      props.horizon.currentUser().watch().flatMap((user:User) =>
-        props.horizon('upc').findAll({uid:user.id}).watch().flatMap((upcs:Upc[]) =>
-          props.horizon('projects').findAll(...upcs.map(upc => ({ id: upc.pid }))).watch().map((projects:ProjectT[]) =>
-            ({ ...props, projects: projects, user: user })
-          )
-        )
-      )
-    )
-  ),
+  getContext({ horizon: ((PropTypes.func: any): Horizon) }),
+  mapPropsStream(getProjects()),
   withStateHandlers(
     {
       projectName: '',
       selectedProjectId: ''
     },
     {
-      setProjectName: state => (projectName: string) => ({ projectName }),
-      setSelectedProjectId: state => (selectedProjectId: string) => ({ selectedProjectId })
+      setProjectName: () => (projectName: string) => ({ projectName }),
+      setSelectedProjectId: () => (selectedProjectId: string) => ({ selectedProjectId })
     }
   ),
   withHandlers({
     createProject: ({ horizon, user, projectName, setProjectName }) => () => {
-      horizon('projects')
-        .store({ name: projectName })
-        .subscribe((project: ProjectT) => horizon('upc').store({ uid: user.id, pid: project.id }))
+      createProject({horizon, user, projectName})
       setProjectName('')
     },
     updateProjectNameInput: ({ setProjectName }) => (e: SyntheticInputEvent) => setProjectName(e.target.value)
