@@ -68,7 +68,6 @@ const LayoutTest = props =>
         </List>
       </Drawer>
       <Content>
-        <h1>Main Content</h1>
         {or(props.selectedProjectId, <Project projectId={props.selectedProjectId} />, <div>none</div>)}
       </Content>
     </Container>

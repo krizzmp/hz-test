@@ -6,44 +6,71 @@ import { mapPropsStream } from '../utils'
 import type { HOC } from 'recompose'
 import type { Horizon, Task } from '../types'
 import styled from 'styled-components'
-import windowDimensions from 'react-window-dimensions'
 import FabModal from './FabModal'
-import type {Observable} from 'rxjs'
+import type { Observable } from 'rxjs'
+import { elevationString } from '../mixins'
+import toSentenceCase_ from 'to-sentence-case'
 
+const toSentenceCase: string => string = toSentenceCase_
+const TaskStyle = styled.div`
+  box-shadow: ${p => (p.selected ? elevationString(4) : elevationString(2))};
+  margin-bottom: ${p => (p.selected ? 16 : 1)}px;
+  margin-top: ${p => (p.selected ? 16 : 1)}px;
+  background: #fff;
+  transition: margin 195ms linear;
+  &:first-of-type {
+    margin-top: 16px;
+  }
+`
+const Title = styled.div`
+  height: ${p => (p.selected ? 64 : 48)}px;
+  cursor: pointer;
+  font-size: 15px;
+  padding-left: 24px;
+  display: flex;
+  align-items: center;
+  transition: height 195ms linear;
+`
+const Description = styled.div`
+  font-size: 12px;
+  padding-left: 24px;
+  padding-bottom: 16px;
+  display: ${p => (p.selected ? 'flex' : 'none')};
+  align-items: center;
+  transition: height 195ms linear;
+`
+const TaskCreatorBar = styled.div``
+const Input = styled.input``
+const Button = styled.button``
 
-const TaskStyle = styled.div``
-const TaskCreatorBar = styled.div`
-  padding: 8px;
-  z-index: 16;
-`
-const Input = styled.input`
-  background: #eeeeee;
-  border: 1px solid #dddddd;
-  border-radius: 4px;
-`
-const Button = styled.button`
-  background: #eeeeee;
-  border: 1px solid #dddddd;
-  border-radius: 4px;
-`
 const TaskItem = props =>
-  <TaskStyle>
-    {props.task.title}
+  <TaskStyle selected={props.selected}>
+    <Title selected={props.selected} onClick={props.onClick}>
+      {toSentenceCase(props.task.title)}
+    </Title>
+    <Description selected={props.selected}>deasdf is the big punch</Description>
   </TaskStyle>
+
 const Tasks = props =>
   <div>
     <h1>tasks</h1>
-    {props.tasks.map(task => <TaskItem key={task.id} task={task} />)}
+    {props.tasks.map(task =>
+      <TaskItem
+        key={task.id}
+        task={task}
+        selected={task.id === props.selectedTaskId}
+        onClick={() => props.setSelectedTaskId(task.id)}
+      />
+    )}
     <FabModal editing={props.editing} onClick={() => props.setEditing(!props.editing)}>
       <TaskCreatorBar>
         <Input type="text" value={props.taskTitle} onChange={props.updateTaskTitleInput} />
-        <Button onClick={props.createTask}>Create Project</Button>
+        <Button onClick={props.createTask}>Create Task</Button>
       </TaskCreatorBar>
     </FabModal>
-    {/* <AddTask height={props.height} width={props.width} editing={props.editing} onClick={() => props.setEditing(!props.editing)} /> */}
   </div>
 
-const enhance: HOC<*, { projectId: string, width: number, height: number }> = compose(
+const enhance: HOC<*, { projectId: string }> = compose(
   getContext({ horizon: ((PropTypes.func: any): Horizon) }),
   mapPropsStream(props$ => {
     return props$.flatMap(props => {
@@ -52,9 +79,10 @@ const enhance: HOC<*, { projectId: string, width: number, height: number }> = co
     })
   }),
   withStateHandlers(
-    { taskTitle: '', editing: false },
+    { taskTitle: '', editing: false, selectedTaskId: '' },
     {
       setTaskTitle: () => (taskTitle: string) => ({ taskTitle }),
+      setSelectedTaskId: () => (selectedTaskId: string) => ({ selectedTaskId }),
       setEditing: () => (editing: boolean) => ({ editing })
     }
   ),
@@ -67,6 +95,5 @@ const enhance: HOC<*, { projectId: string, width: number, height: number }> = co
     updateTaskTitleInput: ({ setTaskTitle }) => (e: SyntheticInputEvent) => setTaskTitle(e.target.value)
   })
 )
-let wd: HOC<{ projectId: string, width: number, height: number }, { projectId: string }> = windowDimensions()
-const exp = wd(enhance(Tasks))
+const exp = enhance(Tasks)
 export default exp

@@ -49,6 +49,7 @@ const Icon = styled.i`
   /* Support for IE. */
   font-feature-settings: 'liga';
   color: rgba(255, 255, 255, 1);
+  cursor: pointer;
 `
 type Props = {
   title: string,
