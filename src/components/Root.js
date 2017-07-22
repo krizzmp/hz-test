@@ -11,6 +11,7 @@ import Project from './Tasks'
 import styled from 'styled-components'
 import toSentenceCase_ from 'to-sentence-case'
 import AppBar from './AppBar'
+import ReactModal from 'react-modal'
 const toSentenceCase: string => string = toSentenceCase_
 const or = (p, y, n) => (p ? y : n)
 
@@ -21,8 +22,8 @@ const Content = styled.div`
 `
 const Drawer = styled.div`
   overflow-y: auto;
-  width: ${(p: { pinned: string }) => (p.pinned ? 64*3+'px' : 0)};
-  border-right: 1px solid #f5f5f5;
+  width: ${(p: { pinned: string }) => (p.pinned ? 64 * 3 + 'px' : 0)};
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
   transition: width 0.195s 0ms cubic-bezier(.4, 0, 0.6, 1);
 `
 const Root = styled.div`
@@ -50,7 +51,10 @@ const MI = p =>
   <MenuItem active={p.active} onClick={p.onClick}>
     {toSentenceCase(p.caption)}
   </MenuItem>
-
+const Divider = styled.hr`
+  margin: 4px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+`
 const LayoutTest = props =>
   <Root>
     <AppBar checked={props.drawerPinned} title={'Taskr'} onChange={() => props.toggleDrawerPinned()} />
@@ -65,10 +69,32 @@ const LayoutTest = props =>
               active={props.selectedProjectId === p.id}
             />
           )}
+          <Divider />
+          <MI caption={'create project'} onClick={() => props.setEditing(true)} active={false} />
+          <ReactModal
+            isOpen={props.editing}
+            contentLabel="Minimal Modal Example"
+            onRequestClose={() => props.setEditing(false)}
+            shouldCloseOnOverlayClick={true}
+            style={{
+              overlay: {
+                backgroundColor: 'rgba(0, 0, 0, 0.6)'
+              },
+              content: {
+                color: 'lightsteelblue',
+                height: 500,
+                zIndex: 12
+              }
+            }}
+          >
+            <button onClick={() => props.setEditing(false)}>Close Modal</button>
+            <input type={'text'} onChange={props.updateProjectNameInput} value={props.projectName} />
+            <button onClick={props.createProject}>create project</button>
+          </ReactModal>
         </List>
       </Drawer>
       <Content>
-        {or(props.selectedProjectId, <Project projectId={props.selectedProjectId} />, <div>none</div>)}
+        {or(props.selectedProjectId, <Project projectId={props.selectedProjectId} user={props.user}/>, <div>none</div>)}
       </Content>
     </Container>
   </Root>
@@ -78,20 +104,23 @@ const enhance: HOC<*, {}> = compose(
   mapPropsStream(getProjects()),
   withStateHandlers(
     {
+      editing: false,
       projectName: '',
       selectedProjectId: '',
       drawerPinned: true
     },
     {
       setProjectName: () => (projectName: string) => ({ projectName }),
+      setEditing: () => (editing: boolean) => ({ editing }),
       setSelectedProjectId: () => (selectedProjectId: string) => ({ selectedProjectId }),
       toggleDrawerPinned: state => () => ({ drawerPinned: !state.drawerPinned })
     }
   ),
   withHandlers({
-    createProject: ({ horizon, user, projectName, setProjectName }) => () => {
+    createProject: ({ horizon, user, projectName, setProjectName, setEditing }) => () => {
       createProject({ horizon, user, projectName })
       setProjectName('')
+      setEditing(false)
     },
     updateProjectNameInput: ({ setProjectName }) => (e: SyntheticInputEvent) => setProjectName(e.target.value)
   })
