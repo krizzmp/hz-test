@@ -37,9 +37,11 @@ const Fab2 = styled(Fab)`
   background-color: ${p => (p.editing ? '#fff' : '#fa9')};
   transition: box-shadow 280ms cubic-bezier(.4, 0, .2, 1), border-radius ${transdur} cubic-bezier(.4, 0, .2, 1), all ${transdur} cubic-bezier(.4, 0, .2, 1);
   margin: ${p => (p.editing ? 0 : 16)}px;
-  height: ${p => (p.editing ? 500 : 0)}px;
+  height: ${p => (p.editing ? 300 : 56)}px;
   width: ${p => (p.editing ? 400 : 0)}px;
   border-radius: ${p => (p.editing ? 4 : 56)}px;
+  display: flex;
+  flex-direction: column;
 `
 let map = (a, b) => b && a
 const Miv = styled.div`
@@ -65,7 +67,11 @@ const F3 = styled.div`
 `
 const Modal = styled.div`
   opacity: ${p => (p.editing ? 1 : 0)};
-  transition: opacity ${transdur} cubic-bezier(.4, 0, .2, 1);
+  transition: opacity 800ms;
+  flex: ${p => (p.editing ? 1 : 0)};
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `
 const Miv2 = p =>
   <Miv editing={p.editing} onClick={p.onClick}>

@@ -6,7 +6,13 @@ import App from './components/app'
 import Horizon_ from '@horizon/client'
 import type { Horizon } from './types'
 import { withContext } from 'recompose'
+import injectTapEventPlugin from 'react-tap-event-plugin'
 
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+
+// Needed for onTouchTap
+// http://stackoverflow.com/a/34015469/988941
+injectTapEventPlugin()
 const horizon: Horizon = Horizon_({ authType: 'token' })
 let Ape
 if (!horizon.hasAuthToken()) {
@@ -22,4 +28,9 @@ if (!horizon.hasAuthToken()) {
   Ape = App3
 }
 
-ReactDOM.render(<Ape />, document.querySelector('.attach'))
+const Apped = () =>
+  <MuiThemeProvider>
+    <Ape />
+  </MuiThemeProvider>
+
+ReactDOM.render(<Apped />, document.querySelector('.attach'))

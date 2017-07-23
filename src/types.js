@@ -4,7 +4,8 @@ export type Collection = {
   findAll: (...g: Object[]) => Collection,
   watch: () => Observable<*>,
   store: (o: Object) => Observable<*>,
-  update: (o: Object) => Observable<*>
+  update: (o: Object) => Observable<*>,
+  remove: (o: any) => Observable<*>
 }
 export type Horizon = {
   (collection: string): Collection,

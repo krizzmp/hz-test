@@ -6,111 +6,97 @@ import { mapPropsStream } from '../utils'
 import type { HOC } from 'recompose'
 import type { Horizon, Task, User } from '../types'
 import styled from 'styled-components'
-import FabModal from './FabModal'
 import type { Observable } from 'rxjs'
 import Rx from 'rxjs'
-import { elevationString } from '../mixins'
+import TextField from 'material-ui/TextField'
 import toSentenceCase_ from 'to-sentence-case'
+import { FlatButton, Dialog } from 'material-ui'
+import FloatingActionButton from 'material-ui/FloatingActionButton'
+import ContentAdd from 'material-ui/svg-icons/content/add'
+import UnclaimedTask from './Task'
 
 const toSentenceCase: string => string = toSentenceCase_
-const TaskStyle = styled.div`
-  box-shadow: ${p => (p.selected ? elevationString(4) : elevationString(2))};
-  margin-bottom: ${p => (p.selected ? 16 : 1)}px;
-  margin-top: ${p => (p.selected ? 16 : 0)}px;
-  background: #fff;
-  transition: margin 195ms linear;
-  &:first-of-type {
-    margin-top: 16px;
-  }
-`
-const Title = styled.div`
-  height: ${p => (p.selected ? 64 : 48)}px;
-  cursor: pointer;
-  font-size: 15px;
-  padding-left: 24px;
-  display: flex;
-  align-items: center;
-  transition: height 195ms linear;
-`
-const Description = styled.div`
-  font-size: 12px;
-  padding-left: 24px;
-  padding-bottom: 16px;
-  display: ${p => (p.selected ? 'flex' : 'none')};
-  align-items: center;
-  transition: height 195ms linear;
-`
-const TaskCreatorBar = styled.div``
-const Input = styled.input``
-const Button = styled.button``
-const BottomRow = styled.div`
-  padding-left: 24px;
-  padding-bottom: 16px;
-  display: ${p => (p.selected ? 'flex' : 'none')};
-  align-items: center;
-`
-const Claim = styled.button``
-const TaskItem = props =>
-  <TaskStyle selected={props.selected}>
-    <Title selected={props.selected} onClick={props.onClick}>
-      {toSentenceCase(props.task.title)}
-    </Title>
-    <Description selected={props.selected}>
-      {toSentenceCase(props.task.description)}
-    </Description>
-    <BottomRow selected={props.selected}>
-      <Claim onClick={() => props.claim(props.task.id)}>Claim</Claim>
-    </BottomRow>
-  </TaskStyle>
-const TaskItem2 = props =>
-  <TaskStyle selected={true}>
-    <Title selected={true}>
-      {toSentenceCase(props.task.title)}
-    </Title>
-    <Description selected={true}>
-      {toSentenceCase(props.task.description)}
-    </Description>
-    <BottomRow selected={true}>
-      <Claim onClick={() => props.unclaim(props.task.id)}>Unclaim</Claim>
-      <Claim onClick={() => props.done(props.task.id)}>Done</Claim>
-    </BottomRow>
-  </TaskStyle>
-const TaskItem3 = props =>
-  <TaskStyle selected={true}>
-    <Title selected={true}>
-      {toSentenceCase(props.task.title)}
-    </Title>
-    <Description selected={true}>
-      {toSentenceCase(props.task.description)}
-    </Description>
-    <BottomRow selected={true}>
-      <Claim onClick={() => props.undone(props.task.id)}>undone</Claim>
-    </BottomRow>
-  </TaskStyle>
 
+const Fab = styled(FloatingActionButton)`
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+`
 const Tasks = props =>
   <div>
     <h1>tasks</h1>
-    {props.tasks.map(task =>
-      <TaskItem
+    {props.tasks.map((task: Task) =>
+      <UnclaimedTask
         key={task.id}
         task={task}
         selected={task.id === props.selectedTaskId}
         onClick={() => props.setSelectedTaskId(task.id)}
         claim={props.claim}
+        buttonText="Claim"
+        delete={props.delete}
       />
     )}
-    <h1>claimed tasks</h1>
-    {props.claimedTasks.map(task => <TaskItem2 key={task.id} task={task} unclaim={props.unclaim} done={props.done} />)}
-    <h1>done tasks</h1>
-    {props.doneTasks.map(task => <TaskItem3 key={task.id} task={task} unclaim={props.unclaim} undone={props.undone} />)}
-    <FabModal editing={props.editing} onClick={() => props.setEditing(!props.editing)}>
-      <TaskCreatorBar>
-        <Input type="text" value={props.taskTitle} onChange={props.updateTaskTitleInput} />
-        <Input type="text" value={props.taskDescription} onChange={props.updateTaskDescriptionInput} />
-        <Button onClick={props.createTask}>Create Task</Button>
-      </TaskCreatorBar>
-    </FabModal>
+    <h6>done tasks</h6>
+    {props.doneTasks.map(task =>
+      <UnclaimedTask
+        key={task.id}
+        task={task}
+        selected={task.id === props.selectedTaskId}
+        onClick={() => props.setSelectedTaskId(task.id)}
+        claim={props.undone}
+        buttonText="Undone"
+        delete={props.delete}
+      />
+    )}
+    {props.claimedTasks.map(task =>
+      <Dialog
+        key={task.id}
+        title={toSentenceCase(task.title)}
+        actions={[
+          <FlatButton key="unclaim" label="Unclaim" onTouchTap={() => props.unclaim(task.id)} />,
+          <FlatButton
+            key="done"
+            label="Done"
+            primary={true}
+            keyboardFocused={true}
+            onTouchTap={() => props.done(task.id)}
+          />
+        ]}
+        modal={false}
+        open={true}
+      >
+        {toSentenceCase(task.description)}
+      </Dialog>
+    )}
+    <Fab onTouchTap={() => props.setEditing(true)}>
+      <ContentAdd />
+    </Fab>
+    <Dialog
+      title="Create Project"
+      actions={[
+        <FlatButton key="unclaim" label="Cancel" onTouchTap={() => props.setEditing(false)} />,
+        <FlatButton key="done" label="Save" primary={true} onTouchTap={props.createTask} />
+      ]}
+      modal={false}
+      open={props.editing}
+      onRequestClose={() => props.setEditing(false)}
+    >
+      <TextField
+        type="text"
+        value={props.taskTitle}
+        onChange={props.updateTaskTitleInput}
+        floatingLabelText="Title"
+        fullWidth={true}
+      />
+      <TextField
+        type="text"
+        value={props.taskDescription}
+        onChange={props.updateTaskDescriptionInput}
+        floatingLabelText="Description"
+        multiLine={true}
+        fullWidth={true}
+      />
+    </Dialog>
   </div>
 
 const enhance: HOC<*, { projectId: string, user: User }> = compose(
@@ -163,6 +149,7 @@ const enhance: HOC<*, { projectId: string, user: User }> = compose(
     unclaim: ({ horizon }) => (id: string) => horizon('tasks').update({ id, claimedBy: '' }),
     done: ({ horizon }) => (id: string) => horizon('tasks').update({ id, done: true }),
     undone: ({ horizon }) => (id: string) => horizon('tasks').update({ id, done: false }),
+    delete: ({ horizon }) => (id: string) => horizon('tasks').remove(id),
     updateTaskDescriptionInput: ({ setTaskDescription }) => (e: SyntheticInputEvent) =>
       setTaskDescription(e.target.value)
   })
