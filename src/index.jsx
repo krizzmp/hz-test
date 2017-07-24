@@ -2,7 +2,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
-import App from './components/app'
+import App from './new_components/Root'
 import Horizon_ from '@horizon/client'
 import type { Horizon } from './types'
 import { withContext } from 'recompose'

@@ -10,7 +10,7 @@ import type { Observable } from 'rxjs'
 import Rx from 'rxjs'
 import TextField from 'material-ui/TextField'
 import toSentenceCase_ from 'to-sentence-case'
-import { FlatButton, Dialog } from 'material-ui'
+import { FlatButton, Dialog, Subheader } from 'material-ui'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import ContentAdd from 'material-ui/svg-icons/content/add'
 import UnclaimedTask from './Task'
@@ -24,7 +24,7 @@ const Fab = styled(FloatingActionButton)`
 `
 const Tasks = props =>
   <div>
-    <h1>tasks</h1>
+    <Subheader>Open Tasks</Subheader>
     {props.tasks.map((task: Task) =>
       <UnclaimedTask
         key={task.id}
@@ -36,7 +36,7 @@ const Tasks = props =>
         delete={props.delete}
       />
     )}
-    <h6>done tasks</h6>
+    <Subheader>Done Tasks</Subheader>
     {props.doneTasks.map(task =>
       <UnclaimedTask
         key={task.id}
