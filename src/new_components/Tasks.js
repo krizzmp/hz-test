@@ -1,15 +1,15 @@
+//@flow
 import React from 'react'
 import PropTypes from 'prop-types'
 import { compose, getContext, withHandlers, withStateHandlers } from 'recompose'
 import { mapPropsStream } from '../utils'
 import type { HOC } from 'recompose'
 import type { Horizon, Task, User } from '../types'
-import styled from 'styled-components'
 import type { Observable } from 'rxjs'
 import Rx from 'rxjs'
 import toSentenceCase_ from 'to-sentence-case'
 import { FlatButton, Dialog, Subheader } from 'material-ui'
-import UnclaimedTask from '../components/Task'
+import UnclaimedTask from './Task'
 
 const toSentenceCase: string => string = toSentenceCase_
 let Tasks = ({
@@ -64,7 +64,7 @@ let Tasks = ({
       </Dialog>
     )}
   </div>
-Tasks = compose(
+const enhance: HOC<*, { projectId: string, user: User }> = compose(
   getContext({ horizon: ((PropTypes.func: any): Horizon) }),
   mapPropsStream(props$ => {
     return props$.flatMap(props => {
@@ -95,6 +95,6 @@ Tasks = compose(
     undone: ({ horizon }) => (id: string) => horizon('tasks').update({ id, done: false }),
     remove: ({ horizon }) => (id: string) => horizon('tasks').remove(id)
   })
-)(Tasks)
-export default Tasks
-// setSelectedTaskId, selectedTaskId, claim, remove, undone, unclaim, done
+)
+const exp = enhance(Tasks)
+export default exp

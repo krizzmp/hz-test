@@ -5,6 +5,7 @@ import { compose, withStateHandlers, getContext, withHandlers } from 'recompose'
 import PropTypes from 'prop-types'
 import type { Horizon } from '../types'
 import { FlatButton, Dialog, TextField } from 'material-ui'
+import type { HOC } from 'recompose'
 
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import ContentAdd from 'material-ui/svg-icons/content/add'
@@ -55,7 +56,7 @@ let Main = (p: propTypes) =>
       />
     </Dialog>
   </div>
-Main = compose(
+const enhance: HOC<*, { projectId: string }> = compose(
   getContext({ horizon: ((PropTypes.func: any): Horizon) }),
   withStateHandlers(
     {
@@ -88,6 +89,7 @@ Main = compose(
     updateTaskDescriptionInput: ({ setTaskDescription }) => (e: SyntheticInputEvent) =>
       setTaskDescription(e.target.value)
   })
-)(Main)
+)
+const exp = enhance(Main)
 
-export default Main
+export default exp

@@ -1,11 +1,7 @@
+// @flow
 import React from 'react'
 import styled from 'styled-components'
-import { compose, withStateHandlers, getContext } from 'recompose'
-import { mapPropsStream } from '../utils'
-import type { Observable } from 'rxjs'
-import PropTypes from 'prop-types'
-import type { Horizon, Task, User } from '../types'
-import Rx from 'rxjs'
+import type { User } from '../types'
 import Tasks from './Tasks'
 import Fab from './Fab'
 
@@ -14,12 +10,14 @@ const MainDiv = styled.div`
   flex: 1;
   padding: 1.8rem;
 `
-let Main = ({ selectedProjectId, user}) =>
+type baseTypes = {
+  selectedProjectId: string,
+  user: User
+}
+let Main = ({ selectedProjectId, user }: baseTypes) =>
   <MainDiv>
     <Tasks projectId={selectedProjectId} user={user} />
     <Fab projectId={selectedProjectId} />
   </MainDiv>
-Main = compose(
-)(Main)
 
 export default Main

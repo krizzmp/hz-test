@@ -1,15 +1,12 @@
+// @flow
 import React from 'react'
-import PropTypes from 'prop-types'
 import styled from 'styled-components'
-import { compose, withStateHandlers, getContext } from 'recompose'
+import { compose, withStateHandlers } from 'recompose'
 import { List, ListItem, Divider } from 'material-ui'
-import { getProjects } from '../store/selectors'
 import muiThemeable from 'material-ui/styles/muiThemeable'
 import CreateProjectDialog from './CreateProjectDialog'
-import type { Horizon, User, Upc, ProjectT } from '../types'
-import type { Observable } from 'rxjs'
-import R from 'rxjs'
-import { mapPropsStream } from '../utils'
+import type { ProjectT } from '../types'
+import type { HOC } from 'recompose'
 
 const Li = muiThemeable()(({ active, muiTheme, ...props }) =>
   <ListItem style={active ? { color: muiTheme.palette.primary1Color } : {}} {...props} />
@@ -20,7 +17,15 @@ const SideBarDiv = styled.div`
   border-right: 1px solid rgba(0, 0, 0, 0.12);
   transition: width 0.195s 0ms cubic-bezier(.4, 0, 0.6, 1);
 `
-let Content = ({ drawerOpen, selectedProjectId, setSelectedProjectId, editing, setEditing, projects = [] }) =>
+let Content = ({
+  drawerOpen,
+  selectedProjectId,
+  setSelectedProjectId,
+  editing,
+  setEditing,
+  projects = [],
+  createProject
+}) =>
   <SideBarDiv drawerOpen={drawerOpen}>
     <List>
       {projects.map(p =>
@@ -36,16 +41,24 @@ let Content = ({ drawerOpen, selectedProjectId, setSelectedProjectId, editing, s
     <List>
       <ListItem primaryText="Create Project" onClick={() => setEditing(true)} />
     </List>
-    <CreateProjectDialog editing={editing} setEditing={setEditing} />
+    <CreateProjectDialog editing={editing} setEditing={setEditing} createProject={createProject} />
   </SideBarDiv>
-Content = compose(
+type baseTypes = {
+  drawerOpen: boolean,
+  selectedProjectId: string,
+  setSelectedProjectId: (id: string) => void,
+  projects: ProjectT[],
+  createProject: (projectName: string) => void
+}
+const enhance: HOC<*, baseTypes> = compose(
   withStateHandlers(
     {
       editing: false
     },
     {
-      setEditing: () => editing => ({ editing })
+      setEditing: () => (editing: boolean) => ({ editing })
     }
   )
-)(Content)
-export default Content
+)
+const exp = enhance(Content)
+export default exp

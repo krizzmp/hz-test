@@ -1,7 +1,9 @@
+//@flow
 import React from 'react'
 import styled from 'styled-components'
 import AppBar from 'material-ui/AppBar'
 import { compose, withStateHandlers } from 'recompose'
+import type {HOC} from 'recompose'
 
 import Content from './Content'
 
@@ -12,10 +14,10 @@ const RootDiv = styled.div`
 `
 let Root = ({ drawerOpen, toggleDrawerOpen }) =>
   <RootDiv>
-    <AppBar onLeftIconButtonTouchTap={() => toggleDrawerOpen()} />
+    <AppBar onLeftIconButtonTouchTap={toggleDrawerOpen} />
     <Content drawerOpen={drawerOpen} />
   </RootDiv>
-Root = compose(
+let Root_:HOC<*,*> = compose(
   withStateHandlers(
     { drawerOpen: true },
     {
@@ -23,6 +25,7 @@ Root = compose(
       toggleDrawerOpen: ({ drawerOpen }) => () => ({ drawerOpen: !drawerOpen })
     }
   )
-)(Root)
+)
+Root_ = Root_(Root)
 
-export default Root
+export default Root_
